@@ -66,7 +66,7 @@ export const tamilPack: LanguagePack = {
   voices: {
     customs_officer: { voiceId: "", moods: { default: "[serious]" }, register: "formal" },
     taxi_driver:     { voiceId: "", moods: { default: "[cheerful]" }, register: "street_formal" },
-    elder_host:      { voiceId: "", moods: { default: "[warmly]" }, register: "formal" },
+    elder_host:      { voiceId: "", moods: { default: "[warmly]", happy: "[laughs warmly]", hurt: "[sighs, hurt]" }, register: "formal" },
     cousin:          { voiceId: "", moods: { default: "[laughs]" }, register: "casual" },
     waiter:          { voiceId: "", moods: { default: "[sighs]" }, register: "street_formal" },
     shopkeeper:      { voiceId: "", moods: { default: "[excited]" }, register: "street_casual" },
