@@ -74,7 +74,7 @@ class Component extends DCLogic {
     const heartsOn = this.props.heartsOn ?? true;
     const START = Math.max(1, Math.min(5, this.props.startHearts ?? 3));
     const shuffled = () => { const a = [0, 1, 2]; for (let i = 2; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
-    const S = Object.assign({ screen: 'intro', t: 0, picked: null, order: [[1, 0, 2], [2, 0, 1], [0, 2, 1], [1, 2, 0], [2, 1, 0]], hearts: START, fx: null, fxN: 0, firstTry: {}, tried: {}, mistakes: [], showTl: false, showEn: false, apologyUsed: false, apologyFailed: false, typed: '', via: 'tap', heard: '', matchPct: 0, heardNote: null, voice: 'idle', mode: 'easy', revealed: false }, this.state || {});
+    const S = Object.assign({ screen: 'intro', t: 0, picked: null, order: [[1, 0, 2], [2, 0, 1], [0, 2, 1], [1, 2, 0], [2, 1, 0]], hearts: START, fx: null, fxN: 0, firstTry: {}, tried: {}, mistakes: [], showTl: false, showEn: false, apologyUsed: false, apologyFailed: false, typed: '', via: 'tap', heard: '', matchPct: 0, heardNote: null, voice: 'idle', mode: 'easy', revealed: false, revealedReply: false }, this.state || {});
     const set = (o) => this.setState(o);
 
     const play = (file) => {
@@ -179,6 +179,9 @@ class Component extends DCLogic {
     const lineHidden = isHard && !S.revealed;
     const toggleMode = () => set({ mode: isHard ? 'easy' : 'hard', revealed: false });
     const revealLine = () => set({ revealed: true });
+    /* Hard mode also hides Paati's response until the player asks to see it. */
+    const replyHidden = isHard && !S.revealedReply;
+    const revealReply = () => set({ revealedReply: true });
 
     const changeHearts = (d) => {
       if (!heartsOn) return { hearts: S.hearts, fx: null };
@@ -195,7 +198,7 @@ class Component extends DCLogic {
       if (heartsOn) saveHearts(hc.hearts);
       const mistakes = o.correct ? S.mistakes : S.mistakes.concat([{ text: o.text, why: o.why }]);
       play(o.correct ? turn.right.audio : turn.wrong.audio);
-      set({ picked: idx, tried: tried, firstTry: firstTry, mistakes: mistakes, hearts: hc.hearts, fx: hc.fx, fxN: S.fxN + 1, via: via, heard: heard || '', matchPct: pct || 0, typed: '', heardNote: null, voice: 'idle' });
+      set({ picked: idx, tried: tried, firstTry: firstTry, mistakes: mistakes, hearts: hc.hearts, fx: hc.fx, fxN: S.fxN + 1, via: via, heard: heard || '', matchPct: pct || 0, typed: '', heardNote: null, voice: 'idle', revealedReply: false });
     };
     const pick = (display) => () => answer(S.order[S.t][display], 'tap');
 
@@ -265,13 +268,13 @@ class Component extends DCLogic {
 
     const reshuffleTurn = (t) => { const order = S.order.slice(); order[t] = shuffled(); return order; };
     const freshOrders = () => [shuffled(), shuffled(), shuffled(), shuffled(), shuffled()];
-    const reset = { t: 0, picked: null, hearts: START, fx: null, firstTry: {}, tried: {}, mistakes: [], apologyUsed: false, apologyFailed: false, typed: '', heardNote: null, voice: 'idle', revealed: false };
+    const reset = { t: 0, picked: null, hearts: START, fx: null, firstTry: {}, tried: {}, mistakes: [], apologyUsed: false, apologyFailed: false, typed: '', heardNote: null, voice: 'idle', revealed: false, revealedReply: false };
     const start = () => { play(ENTRANCE[0].audio); if (heartsOn) saveHearts(START); set(Object.assign({ screen: 'play', order: freshOrders() }, reset)); };
     const replay = () => set(Object.assign({ screen: 'intro' }, reset));
     const retry = () => set({ picked: null, order: reshuffleTurn(S.t), typed: '', heardNote: null });
     const cont = () => {
       if (heartsOn && S.hearts <= 0) { set({ screen: 'broken' }); return; }
-      if (S.t < 4) { play(ENTRANCE[S.t + 1].audio); set({ t: S.t + 1, picked: null, typed: '', heardNote: null, revealed: false }); }
+      if (S.t < 4) { play(ENTRANCE[S.t + 1].audio); set({ t: S.t + 1, picked: null, typed: '', heardNote: null, revealed: false, revealedReply: false }); }
       else { if (heartsOn) saveHearts(S.hearts); set({ screen: 'end', picked: null }); }
     };
     const replayLine = () => play(turn.audio);
@@ -363,6 +366,7 @@ class Component extends DCLogic {
       hasHeardNote: !!S.heardNote, heardNote: S.heardNote || { t: '', c: '' },
       showTl: S.showTl, showEn: S.showEn, tlBtn: tog(S.showTl), enBtn: tog(S.showEn),
       modeLabel: isHard ? 'HARD' : 'EASY', isHard: isHard, lineHidden: lineHidden, revealed: !!S.revealed, toggleMode, revealLine,
+      replyHidden: replyHidden, revealedReply: !!S.revealedReply, revealReply,
       audioNote: { line: note(turn.audio), reply: note(re.audio) },
       pipLabel: 'Turn ' + (T + 1) + ' of 5',
       endStats: 'First-try answers: ' + firstCount + ' of 5' + (heartsOn ? ' · ' + S.hearts + ' of 5 hearts carry on to the kitchen' : ''),
@@ -617,13 +621,13 @@ export default function EntranceBoard(passedProps) {
                               {o?.n}
                             </span>
                             <span style={{ display: "flex", flexDirection: "column", minWidth: "0", flex: "1" }}>
-                              <span style={{ fontFamily: "'Pixelify Sans', monospace", fontSize: "13px", lineHeight: "1.3", display: "-webkit-box", WebkitLineClamp: "2", WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                                {o?.text}
+                              <span style={{ fontFamily: "'Noto Sans Tamil', sans-serif", fontWeight: "600", fontSize: "13px", lineHeight: "1.3", display: "-webkit-box", WebkitLineClamp: "2", WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                {o?.ta}
                               </span>
                               {v?.showTl && !v?.lineHidden ? (
                                 <>
-                                  <span style={{ fontFamily: "'Noto Sans Tamil', sans-serif", fontWeight: "500", fontSize: "11px", color: "#9fe1cb", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                    {o?.ta}
+                                  <span style={{ fontFamily: "'Pixelify Sans', monospace", fontSize: "11px", color: "#9fe1cb", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                    {o?.text}
                                   </span>
                                 </>
                               ) : null}
@@ -678,9 +682,15 @@ export default function EntranceBoard(passedProps) {
                       <span style={{ fontFamily: "'Noto Sans Tamil', sans-serif", fontWeight: "700", fontSize: "13px", color: "#ffd166", flexShrink: "0" }}>
                         {"\u0baa\u0bbe\u0b9f\u0bcd\u0b9f\u0bbf"}
                       </span>
-                      <span style={{ fontFamily: "'Noto Sans Tamil', sans-serif", fontWeight: "700", fontSize: "17px", lineHeight: "1.25", color: "#ffffff" }}>
-                        {"\u201c"}{v?.re?.ta}{"\u201d"}
-                      </span>
+                      {v?.replyHidden ? (
+                        <button onClick={v?.revealReply} style={{ fontSize: "14px", padding: "6px 12px", background: "#2b2440", border: "2px dashed #e9c46a", color: "#ffd166", fontFamily: "'Pixelify Sans', monospace", cursor: "pointer" }}>
+                          {"Hidden \u00b7 click to reveal her response"}
+                        </button>
+                      ) : (
+                        <span style={{ fontFamily: "'Noto Sans Tamil', sans-serif", fontWeight: "700", fontSize: "17px", lineHeight: "1.25", color: "#ffffff" }}>
+                          {"\u201c"}{v?.re?.ta}{"\u201d"}
+                        </span>
+                      )}
                       <button onClick={v?.replayReaction} aria-label="Replay Paati\u2019s reaction" style={{ height: "26px", padding: "0 8px", background: "#2b2440", border: "2px solid #9fe1cb", color: "#9fe1cb", fontFamily: "'Pixelify Sans', monospace", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", flexShrink: "0" }}>
                         <svg width="8" height="10" viewBox="0 0 4 5" shapeRendering="crispEdges" aria-hidden="true">
                           <rect x="0" y="0" width="1" height="5" fill="#9fe1cb"></rect>
@@ -691,14 +701,14 @@ export default function EntranceBoard(passedProps) {
                       </button>
                     </div>
                     <div style={{ fontSize: "12px" }}>
-                      {v?.showTl ? (
+                      {v?.showTl && !v?.replyHidden ? (
                         <>
                           <span style={{ fontFamily: "'Pixelify Sans', monospace", color: "#9fe1cb" }}>
                             {v?.re?.text}{" "}
                           </span>
                         </>
                       ) : null}
-                      {v?.showEn ? (
+                      {v?.showEn && !v?.replyHidden ? (
                         <>
                           <span style={{ color: "#c8bcd8" }}>
                             {"\u00b7 "}{v?.re?.en}
