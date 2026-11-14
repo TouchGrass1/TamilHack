@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 
 import { transcribeTurn, npcSpeak } from "@/lib/speech.functions";
+import { translateText } from "@/lib/voice.functions";
 import { Stage } from "@/dc/Stage";
 import EntranceBoard from "@/boards/EntranceBoard";
 import "@/dc/dc.css";
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/entrance")({
 function useSpeechBridge() {
   const npcSpeakFn = useServerFn(npcSpeak);
   const transcribeFn = useServerFn(transcribeTurn);
+  const translateFn = useServerFn(translateText);
 
   return useMemo(
     () => ({
@@ -46,6 +48,14 @@ function useSpeechBridge() {
         } catch {
           // TTS unavailable — play the user's backup recording instead of silence
           return new Audio("/audio/backup-paatri-entrance.mp3");
+        }
+      },
+      async translate(word: string) {
+        try {
+          const { text } = await translateFn({ data: { text: word, from: "en", to: "ta" } });
+          return text;
+        } catch {
+          return null;
         }
       },
       async stt(blob: Blob, expectedText: string) {
@@ -65,7 +75,7 @@ function useSpeechBridge() {
         });
       },
     }),
-    [npcSpeakFn, transcribeFn],
+    [npcSpeakFn, transcribeFn, translateFn],
   );
 }
 

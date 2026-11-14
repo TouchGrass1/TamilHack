@@ -74,7 +74,7 @@ class Component extends DCLogic {
     const heartsOn = this.props.heartsOn ?? true;
     const START = Math.max(1, Math.min(5, this.props.startHearts ?? 3));
     const shuffled = () => { const a = [0, 1, 2]; for (let i = 2; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
-    const S = Object.assign({ screen: 'intro', t: 0, picked: null, order: [[1, 0, 2], [2, 0, 1], [0, 2, 1], [1, 2, 0], [2, 1, 0]], hearts: START, fx: null, fxN: 0, firstTry: {}, tried: {}, mistakes: [], showTl: false, showEn: false, apologyUsed: false, apologyFailed: false, typed: '', via: 'tap', heard: '', matchPct: 0, heardNote: null, voice: 'idle', mode: 'easy', revealed: false, revealedReply: false }, this.state || {});
+    const S = Object.assign({ screen: 'intro', t: 0, picked: null, order: [[1, 0, 2], [2, 0, 1], [0, 2, 1], [1, 2, 0], [2, 1, 0]], hearts: START, fx: null, fxN: 0, firstTry: {}, tried: {}, mistakes: [], showTl: false, showEn: false, apologyUsed: false, apologyFailed: false, typed: '', via: 'tap', heard: '', matchPct: 0, heardNote: null, voice: 'idle', mode: 'easy', revealed: false, revealedReply: false, mix: null }, this.state || {});
     const set = (o) => this.setState(o);
 
     const play = (file) => {
@@ -239,6 +239,35 @@ class Component extends DCLogic {
               const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' });
               const expected = turn.options.filter((o) => o.correct).map((o) => o.text)[0] || '';
               const draft = await this.props.stt(blob, expected);
+              /* Mixed-language rule: any English word spoken in the answer is wrong.
+                 Easy: lose a heart, show what she heard + the full sentence in Tamil
+                 with the English words highlighted. Hard: lose a heart, try again. */
+              const engWords = (draft.word_analysis || []).filter((w) => w && (w.lang === 'eng' || w.lang === 'en' || w.status === 'english' || /[A-Za-z]/.test(w.word || '')) && w.word);
+              if (engWords.length && this.props.translate) {
+                const heard = draft.transcript_transliterated || draft.transcript_tamil_script || '';
+                const heardTa = draft.transcript_tamil_script || '';
+                const engSet = {};
+                engWords.forEach((w) => { const c = (w.word || '').replace(/[.,!?]/g, ''); if (c) engSet[c] = true; });
+                const parts = [];
+                for (const w of (draft.word_analysis || [])) {
+                  const raw = w.word || '';
+                  if (!raw) continue;
+                  if (engSet[raw.replace(/[.,!?]/g, '')]) {
+                    let tr = null;
+                    try { tr = await this.props.translate(raw.replace(/[.,!?]/g, '')); } catch (e) { tr = null; }
+                    parts.push({ w: tr || raw, en: true });
+                  } else parts.push({ w: raw, en: false });
+                }
+                const hc = changeHearts(-1);
+                if (heartsOn) saveHearts(hc.hearts);
+                set({
+                  mix: { heard: heard, heardTa: heardTa, words: parts, mode: S.mode },
+                  hearts: hc.hearts, fx: hc.fx, fxN: S.fxN + 1,
+                  mistakes: S.mistakes.concat([{ text: heard, why: 'Mixed English into the Tamil answer — speak full Tamil.' }]),
+                  voice: 'idle', heardNote: null,
+                });
+                return;
+              }
               const alts = [draft.transcript_tamil_script, draft.transcript_transliterated].filter(Boolean);
               resolveFree(alts, 'voice');
             } catch (e) {
@@ -268,13 +297,13 @@ class Component extends DCLogic {
 
     const reshuffleTurn = (t) => { const order = S.order.slice(); order[t] = shuffled(); return order; };
     const freshOrders = () => [shuffled(), shuffled(), shuffled(), shuffled(), shuffled()];
-    const reset = { t: 0, picked: null, hearts: START, fx: null, firstTry: {}, tried: {}, mistakes: [], apologyUsed: false, apologyFailed: false, typed: '', heardNote: null, voice: 'idle', revealed: false, revealedReply: false };
+    const reset = { t: 0, picked: null, hearts: START, fx: null, firstTry: {}, tried: {}, mistakes: [], apologyUsed: false, apologyFailed: false, typed: '', heardNote: null, voice: 'idle', revealed: false, revealedReply: false, mix: null };
     const start = () => { play(ENTRANCE[0].audio); if (heartsOn) saveHearts(START); set(Object.assign({ screen: 'play', order: freshOrders() }, reset)); };
     const replay = () => set(Object.assign({ screen: 'intro' }, reset));
-    const retry = () => set({ picked: null, order: reshuffleTurn(S.t), typed: '', heardNote: null });
+    const retry = () => set({ picked: null, order: reshuffleTurn(S.t), typed: '', heardNote: null, mix: null });
     const cont = () => {
       if (heartsOn && S.hearts <= 0) { set({ screen: 'broken' }); return; }
-      if (S.t < 4) { play(ENTRANCE[S.t + 1].audio); set({ t: S.t + 1, picked: null, typed: '', heardNote: null, revealed: false, revealedReply: false }); }
+      if (S.t < 4) { play(ENTRANCE[S.t + 1].audio); set({ t: S.t + 1, picked: null, typed: '', heardNote: null, revealed: false, revealedReply: false, mix: null }); }
       else { if (heartsOn) saveHearts(S.hearts); set({ screen: 'end', picked: null }); }
     };
     const replayLine = () => play(turn.audio);
@@ -353,7 +382,8 @@ class Component extends DCLogic {
       introHeartText: 'You start with ' + START + ' of Paati’s 5 hearts',
       showHints: (this.props.showHints ?? true) && !isEnd,
       isIntro: S.screen === 'intro', isPlay: isPlay, isEnd: isEnd, isBroken: S.screen === 'broken',
-      noPick: isPlay && S.picked === null, hasPick: isPlay && S.picked !== null,
+      noPick: isPlay && S.picked === null && !S.mix, hasPick: isPlay && S.picked !== null, isMix: isPlay && !!S.mix, mix: S.mix,
+      mixCanRetry: !heartsOn || S.hearts > 0, mixCanContinue: heartsOn && S.hearts <= 0,
       talkLine: isPlay && S.picked === null, talkReply: isPlay && S.picked !== null,
       isRight: isRight, isWrong: isWrong, isLove: isRight && heartsOn, isHurt: isWrong && heartsOn,
       showPotHint: isPlay && S.t === 2 && S.picked === null,
@@ -613,8 +643,9 @@ export default function EntranceBoard(passedProps) {
                         </div>
                       </>
                     ) : null}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px", marginTop: "auto" }}>
-                      {(v?.opts || []).map((o, $index) => (
+                    {!v?.isHard ? (
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px", marginTop: "auto" }}>
+                        {(v?.opts || []).map((o, $index) => (
                         <React.Fragment key={$index}>
                           <button className="opt" onClick={o?.pick} title={v?.lineHidden ? undefined : o?.text} style={{ display: "flex", alignItems: "flex-start", gap: "8px", padding: "6px 8px", minHeight: "52px", background: "#2b2440", border: "2px solid #e9c46a", color: "#fff6e5", cursor: "pointer", textAlign: "left" }}>
                             <span aria-hidden="true" style={{ flexShrink: "0", padding: "0 4px", background: "#e9c46a", color: "#1f1a2e", fontFamily: "'Pixelify Sans', monospace", fontWeight: "600", fontSize: "11px", lineHeight: "15px" }}>
@@ -642,7 +673,12 @@ export default function EntranceBoard(passedProps) {
                           </button>
                         </React.Fragment>
                       ))}
-                    </div>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: "12px", color: "#a89cb8", marginTop: "auto" }}>
+                        {"Hard mode: no answer prompts. Listen and speak your answer with the mic."}
+                      </div>
+                    )}
                   </>
                 ) : null}
                 {v?.hasPick ? (
@@ -747,6 +783,81 @@ export default function EntranceBoard(passedProps) {
                         <>
                           <button onClick={v?.cont} style={{ minHeight: "44px", padding: "0 16px", background: v?.contBtn?.bg, border: `2px solid ${v?.contBtn?.edge ?? ""}`, color: v?.contBtn?.ink, fontFamily: "'Pixelify Sans', monospace", fontWeight: "600", fontSize: "14px", cursor: "pointer", whiteSpace: "nowrap" }}>
                             {v?.contBtn?.label}
+                          </button>
+                        </>
+                      ) : null}
+                    </div>
+                  </>
+                ) : null}
+                {v?.isMix ? (
+                  <>
+                    {v?.mix?.mode === 'easy' ? (
+                      <>
+                        <div style={{ display: "flex", gap: "8px", alignItems: "baseline", flexWrap: "wrap", padding: "4px 8px", background: "#2b2440", border: "2px solid #4a4060" }}>
+                          <span style={{ fontSize: "12px", color: "#ffd166", flexShrink: "0" }}>
+                            {"You said"}
+                          </span>
+                          <span style={{ fontSize: "14px" }}>
+                            {v?.mix?.heard}
+                          </span>
+                        </div>
+                        {v?.mix?.heardTa ? (
+                          <div style={{ fontFamily: "'Noto Sans Tamil', sans-serif", fontSize: "13px", color: "#9fe1cb" }}>
+                            {v?.mix?.heardTa}
+                          </div>
+                        ) : null}
+                        <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", padding: "5px 8px", background: "#3a1820", border: "2px solid #e63946" }}>
+                          <span style={{ padding: "0 6px", background: "#f7c1c1", color: "#501313", fontSize: "12px", fontWeight: "600", flexShrink: "0", whiteSpace: "nowrap" }}>
+                            {"Mixed languages"}
+                          </span>
+                          <span style={{ fontSize: "13px", lineHeight: "1.35", color: "#ffe3e6", flex: "1", minWidth: "0" }}>
+                            {"English words don\u2019t belong in Paati\u2019s Tamil. Full sentence in Tamil: "}
+                            {(v?.mix?.words || []).map((pt, $index) => (
+                              <React.Fragment key={$index}>
+                                <span style={pt?.en ? { color: "#ffb3bd", background: "rgba(163,45,45,0.35)" } : { fontFamily: "'Noto Sans Tamil', sans-serif" }}>
+                                  {pt?.w}
+                                </span>
+                                <span>
+                                  {" "}
+                                </span>
+                              </React.Fragment>
+                            ))}
+                          </span>
+                          {v?.heartsOn ? (
+                            <span style={{ padding: "0 6px", background: "#6b2b33", color: "#ffffff", fontSize: "12px", fontWeight: "600", flexShrink: "0", whiteSpace: "nowrap" }}>
+                              {"\u22121 heart"}
+                            </span>
+                          ) : null}
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", padding: "5px 8px", background: "#3a1820", border: "2px solid #e63946" }}>
+                        <span style={{ padding: "0 6px", background: "#f7c1c1", color: "#501313", fontSize: "12px", fontWeight: "600", flexShrink: "0", whiteSpace: "nowrap" }}>
+                          {"Mixed languages"}
+                        </span>
+                        <span style={{ fontSize: "13px", lineHeight: "1.35", color: "#ffe3e6", flex: "1", minWidth: "0" }}>
+                          {"Paati heard English in your answer \u2014 speak only Tamil."}
+                        </span>
+                        {v?.heartsOn ? (
+                          <span style={{ padding: "0 6px", background: "#6b2b33", color: "#ffffff", fontSize: "12px", fontWeight: "600", flexShrink: "0", whiteSpace: "nowrap" }}>
+                            {"\u22121 heart"}
+                          </span>
+                        ) : null}
+                      </div>
+                    )}
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "auto" }}>
+                      <span style={{ flex: "1" }}></span>
+                      {v?.mixCanRetry ? (
+                        <>
+                          <button onClick={v?.retry} style={{ minHeight: "44px", padding: "0 16px", background: "#f2b705", border: "2px solid #5a3a00", color: "#2a1a00", fontFamily: "'Pixelify Sans', monospace", fontWeight: "600", fontSize: "14px", cursor: "pointer", whiteSpace: "nowrap" }}>
+                            {"Try again"}
+                          </button>
+                        </>
+                      ) : null}
+                      {v?.mixCanContinue ? (
+                        <>
+                          <button onClick={v?.cont} style={{ minHeight: "44px", padding: "0 16px", background: "#6b2b33", border: "2px solid #2a0a10", color: "#ffd6de", fontFamily: "'Pixelify Sans', monospace", fontWeight: "600", fontSize: "14px", cursor: "pointer", whiteSpace: "nowrap" }}>
+                            {"Paati turns away\u2026"}
                           </button>
                         </>
                       ) : null}
