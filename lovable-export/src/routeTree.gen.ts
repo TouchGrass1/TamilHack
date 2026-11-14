@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DebugRouteImport } from './routes/debug'
+import { Route as EchoRouteImport } from './routes/echo'
 import { Route as EntranceRouteImport } from './routes/entrance'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const DebugRoute = DebugRouteImport.update({
   path: '/debug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EchoRoute = EchoRouteImport.update({
+  id: '/echo',
+  path: '/echo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EntranceRoute = EntranceRouteImport.update({
   id: '/entrance',
   path: '/entrance',
@@ -32,30 +38,34 @@ const EntranceRoute = EntranceRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/debug': typeof DebugRoute
+  '/echo': typeof EchoRoute
   '/entrance': typeof EntranceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/debug': typeof DebugRoute
+  '/echo': typeof EchoRoute
   '/entrance': typeof EntranceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/debug': typeof DebugRoute
+  '/echo': typeof EchoRoute
   '/entrance': typeof EntranceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/debug' | '/entrance'
+  fullPaths: '/' | '/debug' | '/echo' | '/entrance'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/debug' | '/entrance'
-  id: '__root__' | '/' | '/debug' | '/entrance'
+  to: '/' | '/debug' | '/echo' | '/entrance'
+  id: '__root__' | '/' | '/debug' | '/echo' | '/entrance'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DebugRoute: typeof DebugRoute
+  EchoRoute: typeof EchoRoute
   EntranceRoute: typeof EntranceRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DebugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/echo': {
+      id: '/echo'
+      path: '/echo'
+      fullPath: '/echo'
+      preLoaderRoute: typeof EchoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/entrance': {
       id: '/entrance'
       path: '/entrance'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DebugRoute: DebugRoute,
+  EchoRoute: EchoRoute,
   EntranceRoute: EntranceRoute,
 }
 export const routeTree = rootRouteImport

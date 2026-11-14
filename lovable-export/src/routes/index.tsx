@@ -1,155 +1,119 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useRef, useState } from "react";
-import { useScribe, CommitStrategy } from "@elevenlabs/react";
-import { Mic, Square, Volume2, Loader2 } from "lucide-react";
-import { getScribeToken, translateText, speak } from "@/lib/voice.functions";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Echo — Tamil & English Voice" },
-      { name: "description", content: "Speak or type in Tamil or English, translate, and hear it spoken back." },
-      { property: "og:title", content: "Echo — Tamil & English Voice" },
-      { property: "og:description", content: "Speak or type in Tamil or English, translate, and hear it spoken back." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { title: "Paati Payanam — Tamil Conversation Adventure" },
+      { name: "description", content: "Choose your Tamil dialect and start your journey to Paati's house." },
+    ],
+    links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@500;700&display=swap",
+      },
     ],
   }),
-  component: Index,
+  component: Menu,
 });
 
-type Lang = "en" | "ta";
-const PAIRS: { label: string; from: Lang; to: Lang }[] = [
-  { label: "English → English", from: "en", to: "en" },
-  { label: "Tamil → English", from: "ta", to: "en" },
-  { label: "English → Tamil", from: "en", to: "ta" },
-  { label: "Tamil → Tamil", from: "ta", to: "ta" },
+type Dialect = { id: string; label: string; ta: string; soon?: boolean };
+
+const DIALECTS: Dialect[] = [
+  { id: "eelam", label: "Eelam Tamil", ta: "ஈழத் தமிழ்", soon: true },
+  { id: "indian", label: "Indian Tamil", ta: "இந்தியத் தமிழ்" },
+  { id: "malaysian", label: "Malaysian Tamil", ta: "மலேசியத் தமிழ்", soon: true },
 ];
-const ISO3 = { en: "eng", ta: "tam" } as const;
 
-function Index() {
-  const [pair, setPair] = useState(1);
-  const { from, to } = PAIRS[pair]!;
-  const [text, setText] = useState("");
-  const [translated, setTranslated] = useState("");
-  const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+function Menu() {
+  const [selected, setSelected] = useState<string | null>(null);
 
-  const tokenFn = useServerFn(getScribeToken);
-  const translateFn = useServerFn(translateText);
-  const speakFn = useServerFn(speak);
-
-  const scribe = useScribe({
-    modelId: "scribe_v2_realtime",
-    commitStrategy: CommitStrategy.VAD,
-    languageCode: ISO3[from],
-    onCommittedTranscript: (d) => {
-      if (d.text.trim()) setText((t) => (t ? t + " " : "") + d.text.trim());
-    },
-  });
-
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
-  }, [text, scribe.partialTranscript]);
-
-  const toggleMic = async () => {
-    setError(null);
-    if (scribe.isConnected) {
-      scribe.disconnect();
-      return;
-    }
+  const pick = (d: Dialect) => {
+    if (d.soon) return;
+    setSelected(d.id);
     try {
-      setBusy("Connecting…");
-      const { token } = await tokenFn();
-      await scribe.connect({ token, microphone: { echoCancellation: true, noiseSuppression: true } });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not start the microphone.");
-    } finally {
-      setBusy(null);
+      window.localStorage.setItem("tamil-rpg:dialect", d.id);
+    } catch {
+      /* storage unavailable */
     }
   };
-
-  const translateAndSpeak = async () => {
-    if (!text.trim()) return;
-    setError(null);
-    try {
-      setBusy("Translating…");
-      const { text: out } = await translateFn({ data: { text, from, to } });
-      setTranslated(out);
-      setBusy("Speaking…");
-      const { audio } = await speakFn({ data: { text: out } });
-      await new Audio(`data:audio/mpeg;base64,${audio}`).play();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const btn =
-    "flex h-28 w-28 items-center justify-center rounded-full shadow-xl transition-transform active:scale-95 disabled:opacity-30";
 
   return (
-    <main className="flex min-h-screen flex-col bg-background">
-      <div className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-10">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">Echo</h1>
-        <div className="flex flex-wrap justify-center gap-2">
-          {PAIRS.map((p, i) => (
-            <button
-              key={p.label}
-              onClick={() => setPair(i)}
-              disabled={scribe.isConnected}
-              className={`rounded-full border px-4 py-1.5 text-sm ${i === pair ? "border-primary bg-primary text-primary-foreground" : "border-border text-foreground"}`}
-            >
-              {p.label}
-            </button>
-          ))}
+    <main
+      className="flex min-h-screen items-center justify-center p-5"
+      style={{ background: "linear-gradient(135deg,#f3e3c3,#e9d2a0)", fontFamily: "'Poppins',sans-serif" }}
+    >
+      <div
+        className="w-full max-w-xl rounded-[26px] p-12"
+        style={{ background: "#fbf3e2", border: "3px solid #f6e4bd", boxShadow: "0 30px 70px rgba(80,40,10,0.35)" }}
+      >
+        <div className="mb-3 text-xs font-bold tracking-[2px]" style={{ color: "#c8841a" }}>
+          TAMIL CONVERSATION ADVENTURE
         </div>
-        <div className="flex gap-10">
-          <button
-            onClick={toggleMic}
-            aria-label={scribe.isConnected ? "Stop listening" : "Start listening"}
-            className={`${btn} ${scribe.isConnected ? "animate-pulse bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"}`}
-          >
-            {scribe.isConnected ? <Square className="h-10 w-10" /> : <Mic className="h-10 w-10" />}
-          </button>
-          <button
-            onClick={translateAndSpeak}
-            disabled={!text.trim() || !!busy || scribe.isConnected}
-            aria-label="Translate and speak"
-            className={`${btn} bg-secondary text-secondary-foreground`}
-          >
-            {busy && busy !== "Connecting…" ? <Loader2 className="h-10 w-10 animate-spin" /> : <Volume2 className="h-10 w-10" />}
-          </button>
+        <h1 className="text-5xl font-black leading-none" style={{ color: "#3a2316", fontFamily: "'Playfair Display',serif" }}>
+          Paati Payanam
+        </h1>
+        <div className="mt-2 text-2xl font-bold" style={{ color: "#d8551f", fontFamily: "'Noto Sans Tamil',sans-serif" }}>
+          பாட்டி பயணம்
         </div>
-        <p className="text-sm text-muted-foreground">
-          {error ?? busy ?? (scribe.isConnected ? "Listening… tap to stop" : "Tap the mic to speak, or type below. Tap the speaker to hear it.")}
+        <p className="mb-8 mt-4 max-w-md text-[15px] leading-relaxed" style={{ color: "#5a4536" }}>
+          Come home, talk with Paati, and learn to speak with warmth, confidence, and respect.
         </p>
-        {translated && (
-          <div className="w-full max-w-2xl rounded-xl bg-muted p-4 text-foreground">
-            <div className="mb-1 text-xs uppercase text-muted-foreground">Spoken ({to === "en" ? "English" : "Tamil"})</div>
-            {translated}
-          </div>
-        )}
-      </div>
-      <div className="sticky bottom-0 border-t border-border bg-card p-4">
-        <div className="mx-auto max-w-3xl">
-          <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
-            <span>Live transcript ({from === "en" ? "English" : "Tamil"})</span>
-            <button onClick={() => { setText(""); setTranslated(""); }} className="underline">Clear</button>
-          </div>
-          <div ref={scrollRef} className="max-h-48 overflow-y-auto">
-            <textarea
-              value={scribe.isConnected && scribe.partialTranscript ? `${text} ${scribe.partialTranscript}`.trim() : text}
-              onChange={(e) => setText(e.target.value)}
-              readOnly={scribe.isConnected}
-              rows={4}
-              placeholder="Your words appear here as you speak — or type text to have it spoken."
-              className="w-full resize-none rounded-lg border border-input bg-background p-3 text-foreground outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
+
+        <div className="mb-3 text-xs font-bold tracking-[1.5px]" style={{ color: "#8a6a4a" }}>
+          CHOOSE YOUR TAMIL DIALECT
+        </div>
+        <div className="mb-8 flex flex-col gap-3">
+          {DIALECTS.map((d) => {
+            const isSelected = selected === d.id;
+            return (
+              <button
+                key={d.id}
+                onClick={() => pick(d)}
+                disabled={d.soon}
+                className="flex items-center justify-between rounded-xl px-5 py-3.5 text-left transition-transform active:scale-[0.99]"
+                style={{
+                  background: isSelected ? "#6e1b1b" : "#fff6e4",
+                  border: `2px solid ${isSelected ? "#e8ad2f" : "#e8d8b8"}`,
+                  cursor: d.soon ? "not-allowed" : "pointer",
+                  opacity: d.soon ? 0.55 : 1,
+                  boxShadow: isSelected ? "0 0 0 4px rgba(232,173,47,0.3)" : "none",
+                }}
+              >
+                <span>
+                  <span className="block font-bold" style={{ color: isSelected ? "#fff6e5" : "#3a2316", fontSize: "15px" }}>
+                    {d.label}
+                    {d.soon ? <span className="ml-2 text-xs font-medium opacity-70">coming soon</span> : null}
+                  </span>
+                  <span
+                    className="mt-0.5 block text-[12.5px]"
+                    style={{ color: isSelected ? "#ffd166" : "#d8551f", fontFamily: "'Noto Sans Tamil',sans-serif" }}
+                  >
+                    {d.ta}
+                  </span>
+                </span>
+                {isSelected ? <span style={{ color: "#e8ad2f", fontWeight: 700 }}>✓</span> : null}
+              </button>
+            );
+          })}
+        </div>
+
+        <Link
+          to="/entrance"
+          className="flex w-full items-center justify-center gap-2.5 rounded-2xl px-6 py-4 text-[17px] font-bold transition-transform active:translate-y-0 hover:-translate-y-0.5"
+          style={{
+            background: "linear-gradient(135deg,#f4c444,#e8a62d)",
+            color: "#3a2316",
+            textDecoration: "none",
+            boxShadow: "0 10px 20px rgba(200,140,30,0.45)",
+          }}
+        >
+          Start your journey →
+        </Link>
+        <div className="mt-3 text-[12.5px]" style={{ color: "#8a6a4a" }}>
+          Selected: <b style={{ color: "#6e1b1b" }}>{DIALECTS.find((d) => d.id === selected)?.label ?? "—"}</b>
         </div>
       </div>
     </main>

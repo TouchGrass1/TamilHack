@@ -269,7 +269,7 @@ function DebugConsole() {
       <h1 className="mb-1 text-2xl font-semibold tracking-tight">Speech Debug Console</h1>
       <p className="mb-4 text-sm text-muted-foreground">
         Batch pipeline debugger — Scribe v3 + rubric scoring + Eleven v3 TTS.{" "}
-        <a href="/" className="underline">
+        <a href="/echo" className="underline">
           ← realtime Echo home
         </a>
       </p>
