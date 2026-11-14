@@ -50,11 +50,12 @@ function useSpeechBridge() {
       },
       async stt(blob: Blob, expectedText: string) {
         const audioBase64 = await blobToBase64(blob);
-        const ext = blob.type.includes("mp4") ? "m4a" : "webm";
+        // Firefox records ogg/opus, Chrome/Safari record webm or mp4
+        const ext = blob.type.includes("mp4") ? "m4a" : blob.type.includes("ogg") ? "ogg" : "webm";
         return transcribeFn({
           data: {
             audioBase64,
-            mime: blob.type || "audio/webm",
+            mime: blob.type || "audio/ogg",
             filename: `turn.${ext}`,
             difficulty: "easy",
             language: "auto",

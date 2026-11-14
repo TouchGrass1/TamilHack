@@ -217,7 +217,8 @@ class Component extends DCLogic {
          then fuzzy-match the transcript (Tamil script + Tanglish transliteration) to the closest option. */
       if (this.props.stt) {
         navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-          const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : undefined;
+          const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus'
+            : MediaRecorder.isTypeSupported('audio/ogg;codecs=opus') ? 'audio/ogg;codecs=opus' : undefined;
           const rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
           const chunks = [];
           rec.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
@@ -366,8 +367,8 @@ class Component extends DCLogic {
 
 const DEFAULT_PROPS = {"heartsOn": true, "startHearts": 3, "showHints": true, "showAudioNames": false, "tts": null, "stt": null};
 
-export default function EntranceBoard() {
-  const v = useDCLogic(Component, DEFAULT_PROPS);
+export default function EntranceBoard(passedProps) {
+  const v = useDCLogic(Component, Object.assign({}, DEFAULT_PROPS, passedProps));
   return (
     <div className="dc-root dc-entrance">
       <div style={{ position: "relative", width: "960px", height: "600px", overflow: "hidden", background: "#b4533c", fontFamily: "'Pixelify Sans', 'Noto Sans Tamil', monospace", color: "#fff6e5" }}>
@@ -587,15 +588,6 @@ export default function EntranceBoard() {
                         </div>
                       </>
                     ) : null}
-                    <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "2px" }}>
-                      <label htmlFor="entrance-typed" style={{ fontSize: "12px", color: "#c8bcd8", flexShrink: "0" }}>
-                        {"Type it, say it, or tap below:"}
-                      </label>
-                      <input id="entrance-typed" value={v?.typed} onChange={v?.onType} onKeyDown={v?.onTypeKey} placeholder="e.g. vanakkam paati\u2026" autoComplete="off" style={{ flex: "1", minWidth: "0", height: "30px", boxSizing: "border-box", padding: "0 8px", background: "#2b2440", border: "2px solid #6a5f80", color: "#fff6e5", fontFamily: "'Pixelify Sans', 'Noto Sans Tamil', monospace", fontSize: "13px" }} />
-                      <button onClick={v?.submitTyped} style={{ height: "30px", padding: "0 12px", background: "#e9c46a", border: "2px solid #5a3a00", color: "#1f1a2e", fontFamily: "'Pixelify Sans', monospace", fontWeight: "600", fontSize: "12px", cursor: "pointer", flexShrink: "0" }}>
-                        {"Answer"}
-                      </button>
-                    </div>
                     {v?.hasHeardNote ? (
                       <>
                         <div role="status" style={{ fontSize: "12px", color: v?.heardNote?.c }}>
