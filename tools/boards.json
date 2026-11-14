@@ -1,0 +1,9 @@
+[
+  {"file": "Entrance.dc.html", "comp": "EntranceBoard", "slug": "entrance", "route": "/entrance", "title": "Room 1 · வாசல் entrance (playable)"},
+  {"file": "Kitchen.dc.html", "comp": "KitchenBoard", "slug": "kitchen", "route": "/kitchen", "title": "Room 2 · சமையலறை kitchen (playable)"},
+  {"file": "Hall.dc.html", "comp": "LivingRoomBoard", "slug": "living-room", "route": "/living-room", "title": "Room 3 · ஹால் living room (playable)"},
+  {"file": "Main.dc.html", "comp": "TownHubBoard", "slug": "town", "route": "/town", "title": "A · Kolam Cozy town hub"},
+  {"file": "Dusk.dc.html", "comp": "AirportBoard", "slug": "airport", "route": "/airport", "title": "B · Chennai Dusk airport taxi curb"},
+  {"file": "Retro.dc.html", "comp": "RestaurantBoard", "slug": "restaurant", "route": "/restaurant", "title": "C · Palm-Leaf 4-Tone restaurant"},
+  {"file": "Home.dc.html", "comp": "HomePrototypeBoard", "slug": "home-prototype", "route": "/home-prototype", "title": "Earlier Home scene prototype (playable)"}
+]

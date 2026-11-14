@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ta">
+<head>
+<meta charset="utf-8">
+<title>Chennai Dusk taxi curb</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&amp;family=Noto+Sans+Tamil:wght@500;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3ee0d0}a:hover{color:#8ff3ea}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-5px)}}
+@keyframes wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.bob{animation:bob 1.1s steps(2) infinite}
+.wv{transform-origin:center;animation:wave .8s steps(3) infinite}
+</style>
+</helmet>
+<div style="position: relative; width: 960px; height: 600px; overflow: hidden; background: #1b1f3b; font-family: 'Pixelify Sans', 'Noto Sans Tamil', monospace; color: #f1eeff;">
+
+<div aria-hidden="true" style="position: absolute; inset: 0; display: grid; grid-template-columns: repeat(40, 24px); grid-auto-rows: 24px;">
+<sc-for list="{{tiles}}" as="t" hint-placeholder-count="1000"><div style="background: {{t.bg}};"></div></sc-for>
+</div>
+
+<sc-for list="{{lights}}" as="l" hint-placeholder-count="7"><div aria-hidden="true" style="position: absolute; left: {{l.x}}px; top: {{l.y}}px; width: 160px; height: 160px; transform: translate(-50%, -50%); background: radial-gradient(circle, {{l.c}} 0 28px, {{l.c2}} 28px 52px, {{l.c3}} 52px 78px, transparent 78px);"></div></sc-for>
+
+<sc-for list="{{sprites}}" as="s" hint-placeholder-count="10">
+<div aria-hidden="true" style="position: absolute; left: {{s.left}}px; top: {{s.top}}px; display: grid; grid-template-columns: repeat({{s.cols}}, {{s.px}}px); grid-auto-rows: {{s.px}}px;">
+<sc-for list="{{s.pixels}}" as="p" hint-placeholder-count="96"><div style="background: {{p.c}};"></div></sc-for>
+</div>
+</sc-for>
+
+<div style="position: absolute; left: 60px; top: 74px; padding: 5px 10px; background: #14152a; border: 3px solid #3ee0d0; text-align: left;">
+<div style="font-family: 'Noto Sans Tamil', sans-serif; font-weight: 700; font-size: 18px; line-height: 1.2; color: #ffffff;">சென்னை விமான நிலையம்</div>
+<div style="font-size: 12px; color: #9ff3ea;">chennai vimaana nilaiyam · airport</div>
+</div>
+
+<div style="position: absolute; left: 412px; top: 92px; padding: 2px 10px; background: #2a0f2a; border: 3px solid #ff4fa3; text-shadow: 0 0 6px #ff4fa3; text-align: center;">
+<span style="font-family: 'Noto Sans Tamil', sans-serif; font-weight: 700; font-size: 16px; color: #ffd6ec;">வருகை</span>
+<span style="font-size: 12px; color: #ffd6ec;"> · arrivals</span>
+</div>
+
+<div class="bob" aria-hidden="true" style="position: absolute; left: 612px; top: 150px; padding: 0 6px; background: #f1eeff; border: 3px solid #14152a; color: #14152a; font-weight: 600; font-size: 14px; line-height: 18px;">…</div>
+<div style="position: absolute; left: 612px; top: 178px; transform: translateX(-50%); padding: 1px 6px; background: #f5c4b3; border: 2px solid #993c1d; font-family: 'Noto Sans Tamil', sans-serif; font-weight: 700; font-size: 12px; line-height: 1.4; color: #4a1b0c; white-space: nowrap;">அண்ணா</div>
+
+<div style="position: absolute; left: 12px; top: 12px; padding: 6px 10px; background: #14152a; border: 3px solid #0a0a16; box-shadow: inset 0 0 0 2px #7f77dd; display: flex; gap: 8px; align-items: center; font-size: 13px;">
+<span style="color: #cecbf6;">Scene 2 · taxi curb</span>
+<span style="padding: 0 6px; background: #3ee0d0; color: #062a27; font-weight: 600;">EASY</span>
+</div>
+
+<div style="position: absolute; left: 230px; top: 12px; width: 500px; box-sizing: border-box; padding: 6px 10px; background: #3a2600; border: 3px solid #ffb347; display: flex; gap: 10px; align-items: center; font-size: 13px; color: #ffe6c2;">
+<span style="padding: 0 6px; background: #ffb347; color: #3a2600; font-weight: 600;">TWIST</span>
+<span>Anna Salai is blocked for a festival procession. Give the driver a landmark.</span>
+</div>
+
+<div style="position: absolute; right: 12px; top: 12px; width: 200px; padding: 6px 10px; background: #14152a; border: 3px solid #0a0a16; box-shadow: inset 0 0 0 2px #7f77dd; display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: #cecbf6;">
+<div style="display: flex; justify-content: space-between;"><span>Driver patience</span><span style="color: #ffb347;">chatty</span></div>
+<div style="display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 2px;">
+<sc-for list="{{patience}}" as="m" hint-placeholder-count="10"><div style="height: 8px; background: {{m.c}};"></div></sc-for>
+</div>
+</div>
+
+<div style="position: absolute; left: 16px; top: 404px; width: 928px; height: 180px; box-sizing: border-box; padding: 14px; background: #14152a; border: 4px solid #0a0a16; box-shadow: inset 0 0 0 3px #534ab7; display: flex; gap: 16px;">
+<div style="width: 104px; height: 144px; flex-shrink: 0; background: #2d2a55; border: 3px solid #7f77dd;"></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<div style="display: flex; gap: 8px; align-items: center;">
+<span style="font-family: 'Noto Sans Tamil', sans-serif; font-weight: 700; font-size: 15px; color: #ffffff;">முருகன் அண்ணா</span>
+<span style="font-size: 12px; color: #afa9ec;">Murugan anna · taxi driver</span>
+</div>
+<div style="font-family: 'Noto Sans Tamil', sans-serif; font-weight: 700; font-size: 22px; line-height: 1.3; color: #ffffff;">வாங்க சார்! எங்க போகணும்?</div>
+<div style="font-size: 15px; color: #9ff3ea;">Vaanga saar! Enga poganum?</div>
+<div style="font-size: 13px; color: #b8b4d8;">Come in, sir! Where do you need to go?</div>
+<div style="display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap;">
+<sc-for list="{{replies}}" as="r" hint-placeholder-count="3">
+<button style="display: flex; align-items: center; gap: 6px; padding: 4px 10px; min-height: 44px; background: #2d2a55; border: 2px solid #7f77dd; color: #f1eeff; cursor: pointer; text-align: left;">
+<svg width="10" height="12" viewBox="0 0 5 6" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="0" width="1" height="6" fill="#3ee0d0"></rect><rect x="1" y="1" width="1" height="4" fill="#3ee0d0"></rect><rect x="2" y="1" width="1" height="4" fill="#3ee0d0"></rect><rect x="3" y="2" width="1" height="2" fill="#3ee0d0"></rect></svg>
+<span style="display: flex; flex-direction: column;"><span style="font-family: 'Noto Sans Tamil', sans-serif; font-weight: 700; font-size: 13px;">{{r.ta}}</span><span style="font-family: 'Pixelify Sans', monospace; font-size: 11px; color: #afa9ec;">{{r.tl}}</span></span>
+</button>
+</sc-for>
+</div>
+</div>
+<div style="width: 110px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
+<button aria-label="Hold to speak" style="width: 72px; height: 72px; border: 4px solid #4a0f30; background: #ff4fa3; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;">
+<svg width="28" height="32" viewBox="0 0 7 8" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="0" width="3" height="5" fill="#ffffff"></rect><rect x="1" y="3" width="1" height="2" fill="#ffffff"></rect><rect x="5" y="3" width="1" height="2" fill="#ffffff"></rect><rect x="2" y="5" width="3" height="1" fill="#ffffff"></rect><rect x="3" y="6" width="1" height="1" fill="#ffffff"></rect><rect x="1" y="7" width="5" height="1" fill="#ffffff"></rect></svg>
+</button>
+<div aria-hidden="true" style="display: flex; gap: 3px; align-items: center; height: 20px;">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="8"><div class="wv" style="width: 5px; height: {{b.h}}px; background: #3ee0d0; animation-delay: {{b.d}}s;"></div></sc-for>
+</div>
+<div style="font-size: 11px; color: #afa9ec;">listening…</div>
+</div>
+</div>
+
+<sc-for list="{{portraits}}" as="s" hint-placeholder-count="1">
+<div aria-hidden="true" style="position: absolute; left: {{s.left}}px; top: {{s.top}}px; display: grid; grid-template-columns: repeat({{s.cols}}, {{s.px}}px); grid-auto-rows: {{s.px}}px;">
+<sc-for list="{{s.pixels}}" as="p" hint-placeholder-count="96"><div style="background: {{p.c}};"></div></sc-for>
+</div>
+</sc-for>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const W = 40, H = 25;
+    const g = [];
+    for (let y = 0; y < H; y++) g.push(new Array(W).fill('k'));
+    const f = (x, y, w, h, c) => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) if (j >= 0 && j < H && i >= 0 && i < W) g[j][i] = c; };
+    f(0, 0, 40, 2, 'R'); f(0, 2, 40, 5, 'G');
+    f(8, 5, 4, 2, 'D'); f(18, 5, 4, 2, 'D'); f(28, 5, 4, 2, 'D');
+    f(0, 7, 40, 2, 's');
+    [2, 6, 14, 24, 34, 38].forEach((i) => f(i, 7, 1, 2, 'P'));
+    f(0, 9, 40, 1, 'c'); f(0, 10, 40, 5, 'r');
+    for (let i = 1; i < W; i += 3) g[12][i] = '-';
+    f(14, 10, 3, 5, 'z');
+    f(0, 15, 40, 2, 'm');
+    [2, 10, 20, 30, 37].forEach((i) => { g[15][i] = 'L'; });
+    f(0, 17, 40, 3, 'r');
+    for (let i = 2; i < W; i += 3) g[18][i] = '-';
+    const px = (c, x, y, w, h) => 'linear-gradient(' + c + ',' + c + ') ' + x + 'px ' + y + 'px/' + w + 'px ' + h + 'px no-repeat';
+    const P = {
+      'R': px('#3ee0d0', 0, 20, 24, 2) + ',repeating-linear-gradient(90deg,#2a2d52 0 22px,#22254a 22px 24px)',
+      'G': px('#ffcf7a', 4, 4, 7, 10) + ',' + px('#ffcf7a', 13, 4, 7, 10) + ',#31366b',
+      'D': px('#8ff3ea', 2, 2, 9, 22) + ',' + px('#8ff3ea', 13, 2, 9, 22) + ',#1b3c4a',
+      's': px('#5b5a86', 22, 0, 2, 24) + ',' + px('#5b5a86', 0, 22, 24, 2) + ',#6d6b9b',
+      'P': px('#a4a2cf', 8, 0, 8, 24) + ',' + px('#5b5a86', 16, 0, 2, 24) + ',#6d6b9b',
+      'c': 'repeating-linear-gradient(90deg,#ffc94d 0 12px,#1b1b2b 12px 24px) 0 0/24px 8px no-repeat,#4a4970',
+      'r': '#262842',
+      '-': px('#e8e4ff', 4, 10, 16, 3) + ',#262842',
+      'z': 'repeating-linear-gradient(0deg,#d9d6f0 0 6px,#262842 6px 12px)',
+      'm': px('#3d7560', 6, 8, 2, 4) + ',#2f5a4a',
+      'L': px('#4fae79', 10, 0, 4, 24) + ',' + px('#4fae79', 0, 10, 24, 4) + ',linear-gradient(45deg,transparent 44%,#3a8a5e 44% 56%,transparent 56%),linear-gradient(-45deg,transparent 44%,#3a8a5e 44% 56%,transparent 56%),#2f5a4a',
+      'k': px('#5d5f8a', 0, 0, 2, 24) + ',#2a2c48'
+    };
+    const ALT = { 'G': px('#4b5296', 4, 4, 7, 10) + ',' + px('#ffcf7a', 13, 4, 7, 10) + ',#31366b', 'r': '#23253e' };
+    const tiles = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const c = g[y][x];
+      const alt = ALT[c] && (x * 31 + y * 17) % 4 === 0;
+      tiles.push({ bg: alt ? ALT[c] : (P[c] || P['k']) });
+    }
+    const warm = { c: 'rgba(255,190,110,0.30)', c2: 'rgba(255,190,110,0.17)', c3: 'rgba(255,190,110,0.07)' };
+    const cyan = { c: 'rgba(62,224,208,0.26)', c2: 'rgba(62,224,208,0.14)', c3: 'rgba(62,224,208,0.06)' };
+    const lights = [[156, 372, warm], [396, 372, warm], [636, 372, warm], [876, 372, warm], [240, 190, cyan], [480, 190, cyan], [720, 190, cyan]].map((l) => Object.assign({ x: l[0], y: l[1] }, l[2]));
+    const BASE = ['..hhhh..', '.hhhhhh.', '.hssssh.', '.sesses.', '..smms..', '.cddddc.', 'scddddcs', 'scddddcs', '.cddddc.', '..pppp..', '..p..p..', '.ff..ff.'];
+    const TAXI = ['..tt........tt..', '.kkkkkkkkkkkkkk.', 'kyyywwwyyyywwwyk', 'kyyywwwyllywwwyk', 'kyyywwwyyyywwwyk', '.kkkkkkkkkkkkkk.', '..tt........tt..'];
+    const AUTO = ['..kkkkkk..', '.kkkkkkkk.', '.kkkkkkkk.', '.kkkkkkkk.', '.ywwwwwwy.', '.yyyyyyyy.', 'tyyyyyyyyt', 't.yyyyyy.t', '....tt....'];
+    const LAMP = ['kllk', 'kllk', '.kk.', '.kk.', '.kk.', '.kk.', '.kk.', '.kk.', '.kk.', 'kkkk'];
+    const taxiPal = { k: '#151522', y: '#f5c518', w: '#7fc8e8', l: '#fff3b0', t: '#0a0a12' };
+    const autoPal = { k: '#151522', y: '#f5c518', w: '#7fc8e8', t: '#0a0a12' };
+    const lampPal = { k: '#14152a', l: '#ffd27a' };
+    const sp = (rows, pal, x, y, size) => ({ left: x, top: y, cols: rows[0].length, px: size, pixels: rows.join('').split('').map((ch) => ({ c: ch === '.' ? 'transparent' : (pal[ch] || '#ff00ff') })) });
+    const driver = { h: '#111118', s: '#8d5a3b', e: '#111118', m: '#111118', c: '#b59b6d', d: '#c8ae7e', p: '#6a5a3a', f: '#1a1a22' };
+    const player = { h: '#2a1d16', s: '#c68a5e', e: '#111118', m: '#c68a5e', c: '#e76f51', d: '#2a9d8f', p: '#264653', f: '#1a1a22' };
+    const sprites = [
+      sp(TAXI, taxiPal, 640, 250, 4), sp(TAXI, taxiPal, 110, 250, 4), sp(AUTO, autoPal, 340, 298, 4), sp(TAXI, taxiPal, 800, 304, 4),
+      sp(LAMP, lampPal, 150, 340, 3), sp(LAMP, lampPal, 390, 340, 3), sp(LAMP, lampPal, 630, 340, 3), sp(LAMP, lampPal, 870, 340, 3),
+      sp(BASE, player, 540, 204, 3), sp(BASE, driver, 600, 204, 3)
+    ];
+    const portraits = [sp(BASE, driver, 52, 436, 8)];
+    const patience = [];
+    for (let i = 0; i < 10; i++) patience.push({ c: i < 6 ? '#ffb347' : '#2d2a55' });
+    const bars = [6, 14, 20, 10, 18, 8, 16, 12].map((h, i) => ({ h: h, d: (i * 0.1).toFixed(1) }));
+    const replies = [
+      { ta: 'T. Nagar போகணும், அண்ணா', tl: 'T. Nagar poganum, anna' },
+      { ta: 'மீட்டர் போடுங்க', tl: 'Meter podunga' },
+      { ta: 'எவ்வளவு ஆகும்?', tl: 'Evvalavu aagum?' }
+    ];
+    return { tiles, lights, sprites, portraits, patience, bars, replies };
+  }
+}
+</script>
+</body>
+</html>
