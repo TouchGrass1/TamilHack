@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Secrets — NEVER commit
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# Build artifacts
+dist/
+dist-ssr/
+.output/
+.wrangler/
+.vinxi/
+.nitro/
+*.tsbuildinfo
+
+# Logs
+*.log
+
+# Archives / generated test assets
+*.zip
+tests/*.wav
+
+# Third-party reference repos (have their own git history)
+ElevenLabs-Clone/
