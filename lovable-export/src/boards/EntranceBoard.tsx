@@ -74,7 +74,7 @@ class Component extends DCLogic {
     const heartsOn = this.props.heartsOn ?? true;
     const START = Math.max(1, Math.min(5, this.props.startHearts ?? 3));
     const shuffled = () => { const a = [0, 1, 2]; for (let i = 2; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
-    const S = Object.assign({ screen: 'intro', t: 0, picked: null, order: [[1, 0, 2], [2, 0, 1], [0, 2, 1], [1, 2, 0], [2, 1, 0]], hearts: START, fx: null, fxN: 0, firstTry: {}, tried: {}, mistakes: [], showTa: true, showEn: true, apologyUsed: false, apologyFailed: false, typed: '', via: 'tap', heard: '', matchPct: 0, heardNote: null, voice: 'idle', mode: 'easy', revealed: false }, this.state || {});
+    const S = Object.assign({ screen: 'intro', t: 0, picked: null, order: [[1, 0, 2], [2, 0, 1], [0, 2, 1], [1, 2, 0], [2, 1, 0]], hearts: START, fx: null, fxN: 0, firstTry: {}, tried: {}, mistakes: [], showTl: false, showEn: false, apologyUsed: false, apologyFailed: false, typed: '', via: 'tap', heard: '', matchPct: 0, heardNote: null, voice: 'idle', mode: 'easy', revealed: false }, this.state || {});
     const set = (o) => this.setState(o);
 
     const play = (file) => {
@@ -278,7 +278,7 @@ class Component extends DCLogic {
     const replayReaction = () => play(re.audio);
     const apologiseRight = () => { const nh = Math.max(1, Math.min(5, S.hearts + 1)); saveHearts(nh); set({ screen: 'play', picked: null, order: reshuffleTurn(S.t), apologyUsed: true, hearts: nh, fx: { type: 'gain', idx: 0 }, fxN: S.fxN + 1 }); };
     const apologiseWrong = () => set({ apologyUsed: true, apologyFailed: true });
-    const toggleTa = () => set({ showTa: !S.showTa });
+    const toggleTl = () => set({ showTl: !S.showTl });
     const toggleEn = () => set({ showEn: !S.showEn });
 
     const pos = isEnd ? END : POS[T];
@@ -361,14 +361,14 @@ class Component extends DCLogic {
       opts: S.order[T].map((idx, i) => { const o = turn.options[idx]; return { n: String(i + 1), text: o.text, ta: o.ta, en: o.en, pick: pick(i) }; }),
       typed: S.typed, onType, onTypeKey, submitTyped, listen, mic: mic,
       hasHeardNote: !!S.heardNote, heardNote: S.heardNote || { t: '', c: '' },
-      showTa: S.showTa, showEn: S.showEn, taBtn: tog(S.showTa), enBtn: tog(S.showEn),
+      showTl: S.showTl, showEn: S.showEn, tlBtn: tog(S.showTl), enBtn: tog(S.showEn),
       modeLabel: isHard ? 'HARD' : 'EASY', isHard: isHard, lineHidden: lineHidden, revealed: !!S.revealed, toggleMode, revealLine,
       audioNote: { line: note(turn.audio), reply: note(re.audio) },
       pipLabel: 'Turn ' + (T + 1) + ' of 5',
       endStats: 'First-try answers: ' + firstCount + ' of 5' + (heartsOn ? ' · ' + S.hearts + ' of 5 hearts carry on to the kitchen' : ''),
       mistakes: S.mistakes, hasMistakes: S.mistakes.length > 0,
       canApologise: !S.apologyUsed, brokenText: brokenText,
-      start, replay, retry, cont, replayLine, replayReaction, apologiseRight, apologiseWrong, toggleTa, toggleEn
+      start, replay, retry, cont, replayLine, replayReaction, apologiseRight, apologiseWrong, toggleTl, toggleEn
     };
   }
 }
@@ -572,8 +572,8 @@ export default function EntranceBoard(passedProps) {
                           {"Hidden \u00b7 click to reveal what she said"}
                         </button>
                       ) : (
-                        <span style={{ fontSize: "21px", lineHeight: "1.25", color: "#ffffff" }}>
-                          {"\u201c"}{v?.turn?.paati}{"\u201d"}
+                        <span style={{ fontFamily: "'Noto Sans Tamil', sans-serif", fontWeight: "700", fontSize: "19px", lineHeight: "1.25", color: "#ffffff" }}>
+                          {"\u201c"}{v?.turn?.ta}{"\u201d"}
                         </span>
                       )}
                       <button onClick={v?.replayLine} aria-label="Replay Paati\u2019s line" style={{ height: "28px", padding: "0 8px", background: "#2b2440", border: "2px solid #9fe1cb", color: "#9fe1cb", fontFamily: "'Pixelify Sans', monospace", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", flexShrink: "0" }}>
@@ -588,10 +588,10 @@ export default function EntranceBoard(passedProps) {
                         {v?.audioNote?.line}
                       </span>
                     </div>
-                    {v?.showTa && !v?.lineHidden ? (
+                    {v?.showTl && !v?.lineHidden ? (
                       <>
-                        <div style={{ fontFamily: "'Noto Sans Tamil', sans-serif", fontWeight: "700", fontSize: "15px", color: "#9fe1cb" }}>
-                          {v?.turn?.ta}
+                        <div style={{ fontFamily: "'Pixelify Sans', monospace", fontSize: "15px", color: "#9fe1cb" }}>
+                          {v?.turn?.paati}
                         </div>
                       </>
                     ) : null}
@@ -620,7 +620,7 @@ export default function EntranceBoard(passedProps) {
                               <span style={{ fontFamily: "'Pixelify Sans', monospace", fontSize: "13px", lineHeight: "1.3", display: "-webkit-box", WebkitLineClamp: "2", WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                                 {o?.text}
                               </span>
-                              {v?.showTa && !v?.lineHidden ? (
+                              {v?.showTl && !v?.lineHidden ? (
                                 <>
                                   <span style={{ fontFamily: "'Noto Sans Tamil', sans-serif", fontWeight: "500", fontSize: "11px", color: "#9fe1cb", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                     {o?.ta}
@@ -678,8 +678,8 @@ export default function EntranceBoard(passedProps) {
                       <span style={{ fontFamily: "'Noto Sans Tamil', sans-serif", fontWeight: "700", fontSize: "13px", color: "#ffd166", flexShrink: "0" }}>
                         {"\u0baa\u0bbe\u0b9f\u0bcd\u0b9f\u0bbf"}
                       </span>
-                      <span style={{ fontSize: "17px", lineHeight: "1.25", color: "#ffffff" }}>
-                        {"\u201c"}{v?.re?.text}{"\u201d"}
+                      <span style={{ fontFamily: "'Noto Sans Tamil', sans-serif", fontWeight: "700", fontSize: "17px", lineHeight: "1.25", color: "#ffffff" }}>
+                        {"\u201c"}{v?.re?.ta}{"\u201d"}
                       </span>
                       <button onClick={v?.replayReaction} aria-label="Replay Paati\u2019s reaction" style={{ height: "26px", padding: "0 8px", background: "#2b2440", border: "2px solid #9fe1cb", color: "#9fe1cb", fontFamily: "'Pixelify Sans', monospace", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", flexShrink: "0" }}>
                         <svg width="8" height="10" viewBox="0 0 4 5" shapeRendering="crispEdges" aria-hidden="true">
@@ -691,10 +691,10 @@ export default function EntranceBoard(passedProps) {
                       </button>
                     </div>
                     <div style={{ fontSize: "12px" }}>
-                      {v?.showTa ? (
+                      {v?.showTl ? (
                         <>
-                          <span style={{ fontFamily: "'Noto Sans Tamil', sans-serif", fontWeight: "500", color: "#9fe1cb" }}>
-                            {v?.re?.ta}{" "}
+                          <span style={{ fontFamily: "'Pixelify Sans', monospace", color: "#9fe1cb" }}>
+                            {v?.re?.text}{" "}
                           </span>
                         </>
                       ) : null}
@@ -746,8 +746,8 @@ export default function EntranceBoard(passedProps) {
               </div>
               <div style={{ width: "92px", flexShrink: "0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "6px" }}>
                 <div style={{ display: "flex", gap: "4px" }}>
-                  <button onClick={v?.toggleTa} aria-pressed={v?.taBtn?.pressed} aria-label="Show Tamil script" style={{ width: "42px", height: "28px", padding: "0", background: v?.taBtn?.bg, border: "2px solid #9fe1cb", color: v?.taBtn?.ink, fontFamily: "'Noto Sans Tamil', sans-serif", fontWeight: "700", fontSize: "12px", cursor: "pointer" }}>
-                    {"\u0ba4"}
+                  <button onClick={v?.toggleTl} aria-pressed={v?.tlBtn?.pressed} aria-label="Show Tanglish (romanized)" style={{ width: "42px", height: "28px", padding: "0", background: v?.tlBtn?.bg, border: "2px solid #9fe1cb", color: v?.tlBtn?.ink, fontFamily: "'Pixelify Sans', monospace", fontWeight: "600", fontSize: "12px", cursor: "pointer" }}>
+                    {"TL"}
                   </button>
                   <button onClick={v?.toggleEn} aria-pressed={v?.enBtn?.pressed} aria-label="Show English" style={{ width: "42px", height: "28px", padding: "0", background: v?.enBtn?.bg, border: "2px solid #9fe1cb", color: v?.enBtn?.ink, fontFamily: "'Pixelify Sans', monospace", fontSize: "11px", cursor: "pointer" }}>
                     {"EN"}
